@@ -6,7 +6,7 @@ var map = new mapboxgl.Map({
     container: 'map', // container ID
     style: 'mapbox://styles/mapbox/streets-v11', // style URL
     center: [144.9631, -37.8136], // starting position [lng, lat]
-    zoom: 9 // starting zoom
+    zoom: 12 // starting zoom
 });
 
 // Suburb selection dropdown
@@ -14,11 +14,17 @@ fetch('vic_locations.json')
     .then(response => response.json())
     .then(data => {
         var select = d3.select('#suburbSelect');
+        
+        // Add a blank option as the first option
+        select.append('option').text('').attr('value', '');
+
+        // Now append the rest of the options
         data.forEach(suburb => {
             select.append('option').text(suburb.Suburb).attr("value", JSON.stringify({ lat: suburb.Latitude, lon: suburb.Longitude }));
         });
     })
     .catch(error => console.error("Error loading suburb data:", error));
+
 
 // Func to categorize UV index
 function categorizeUvIndex(uvIndex) {
@@ -31,10 +37,19 @@ function categorizeUvIndex(uvIndex) {
 
 // weather and uv information on suburb selection
 d3.select('#suburbSelect').on("change", function(d) {
-    var selectedValue = JSON.parse(d3.select(this).property('value'));
+    var selectedValue = d3.select(this).property('value');
+
+    // Check if the selectedValue is empty and return early if so
+    if (!selectedValue) {
+        // Optionally clear any previously displayed data or reset the map view
+        return;
+    }
+
+    selectedValue = JSON.parse(selectedValue);
     map.flyTo({ center: [selectedValue.lon, selectedValue.lat], zoom: 11 });
     updateWeatherInfo(selectedValue.lat, selectedValue.lon);
 });
+
 
 var currentPopup;
 
@@ -54,7 +69,7 @@ function updateWeatherInfo(lat, lon) {
             d3.select('#uvInfo').html("");
 
             // to update the UV Info div with new data
-            d3.select('#uvInfo').html(`Current UV Index: ${uvIndex} (${uvCategory})<br>Temperature: ${temp}°C`);
+            d3.select('#uvInfo').html(`The UV Index is ${uvIndex}, which is considered ${uvCategory}. The Current Temperature is: ${temp}°C`);
 
             // to close the current popup if it exists
             if (currentPopup) {
@@ -64,7 +79,7 @@ function updateWeatherInfo(lat, lon) {
             // to create a new pop up
             currentPopup = new mapboxgl.Popup()
                 .setLngLat([lon, lat])
-                .setHTML(`<h4>Weather Info</h4><p>UV Index: ${uvIndex} (${uvCategory})<br>Temperature: ${temp}°C</p>`)
+                .setHTML(`<h4>Weather Info</h4><p>UV Index: ${uvIndex}<br>UV Risk: ${uvCategory}<br>Temperature: ${temp}°C</p>`)
                 .addTo(map);
 
             visualizeHourlyForecast(data.hourly);

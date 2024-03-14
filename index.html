@@ -9,11 +9,16 @@
         body { font-family: Arial, sans-serif; }
         #map { height: 400px; }
         .mapboxgl-popup { max-width: 200px; }
+        .container { display: flex; align-items: center; }
+        .container select { margin-left: 10px; }
         /* Add more styling as needed */
     </style>
 </head>
 <body>
-    <select id="suburbSelect"></select>
+    <div class="container">
+        <label for="suburbSelect">Select Suburb:</label>
+        <select id="suburbSelect"></select>
+    </div>
     <div id="map"></div>
     <div id="uvInfo"></div>
     <div id="hourlyForecast"></div>
